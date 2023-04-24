@@ -1,4 +1,4 @@
-package executors.model;
+package tmp.model;
 
 public record Interval(int min, int max) implements Comparable<Interval> {
     public boolean contains(int value){

@@ -1,6 +1,8 @@
-package executors.model;
+package tmp.model;
 
-import java.util.concurrent.ExecutionException;
+import utils.AnalyzedFile;
+import utils.Result;
+
 import java.util.concurrent.Future;
 
 public class ComputeResultTask implements Runnable{

@@ -1,4 +1,7 @@
-package executors.model;
+package utils;
+
+import tmp.model.Interval;
+import utils.AnalyzedFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +27,10 @@ public class Result {
         return this.ranking.stream().limit(nResults).collect(Collectors.toList());
     }
 
+    public synchronized List<AnalyzedFile> getAllAnalizedFiles() {
+        return this.ranking.stream().collect(Collectors.toList());
+    }
+
     public synchronized Map<Interval, Integer> getDistribution() {
         return this.distribution;
     }
@@ -34,6 +41,12 @@ public class Result {
             if(entry.getKey().contains(elem.lines())){
                 entry.setValue(entry.getValue() + 1);
             }
+        }
+    }
+
+    public synchronized void merge(Result otherResult){
+        for(AnalyzedFile analyzedFile : otherResult.getAllAnalizedFiles()){
+            this.add(analyzedFile);
         }
     }
 }

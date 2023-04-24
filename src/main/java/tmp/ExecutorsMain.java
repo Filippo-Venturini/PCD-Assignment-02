@@ -1,6 +1,6 @@
-package executors;
+package tmp;
 
-import executors.model.ScanDirectoryService;
+import tmp.model.ScanDirectoryService;
 
 public class ExecutorsMain {
     public static void main(String[] args){

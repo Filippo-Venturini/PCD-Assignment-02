@@ -1,7 +1,10 @@
-package executors.model;
+package tmp.model;
+
+import utils.AnalyzedFile;
+import utils.Report;
+import utils.Result;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -9,6 +12,8 @@ public class ScanDirectoryService extends Thread{
     private String startDir;
     private ExecutorService executor;
     private Result result = new Result(10, 200);
+
+    private CompletableFuture<Report> finalReport = new CompletableFuture<>();
 
     public ScanDirectoryService(String startDir, int nThread){
         this.startDir = startDir;
@@ -36,8 +41,13 @@ public class ScanDirectoryService extends Thread{
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        this.finalReport.complete(new Report(this.result.getRanking(10), this.result.getDistribution()));
         System.out.println(result.getRanking(10));
         System.out.println(result.getDistribution());
         //TODO UPDATE VIEW RISULTATI FINALI
+    }
+
+    public CompletableFuture<Report> getFinalReport(){
+        return this.finalReport;
     }
 }

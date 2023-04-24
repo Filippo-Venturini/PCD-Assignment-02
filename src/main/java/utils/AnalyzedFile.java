@@ -1,4 +1,4 @@
-package executors.model;
+package utils;
 
 public record AnalyzedFile(String path, int lines) implements Comparable<AnalyzedFile>{
     @Override
