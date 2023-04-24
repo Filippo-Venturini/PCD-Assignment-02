@@ -1,8 +1,5 @@
 package utils;
 
-import tmp.model.Interval;
-import utils.AnalyzedFile;
-
 import java.util.List;
 import java.util.Map;
 

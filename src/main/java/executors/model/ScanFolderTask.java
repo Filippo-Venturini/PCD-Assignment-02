@@ -1,6 +1,4 @@
 package executors.model;
-
-import tmp.model.SearchFilesTask;
 import utils.AnalyzedFile;
 import utils.Result;
 

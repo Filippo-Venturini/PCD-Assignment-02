@@ -1,12 +1,12 @@
 package executors.controller;
 
-import utils.Report;
-import tmp.model.SetupInfo;
+import utils.SetupInfo;
+import utils.Result;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface SourceAnalyzer {
-    CompletableFuture<Report> getReport(SetupInfo setupInfo);
+    CompletableFuture<Result> getReport(SetupInfo setupInfo);
 
     //analizeSources(String dir);
 }

@@ -1,20 +1,24 @@
-package tmp.view;
+package vertx;
 
-import tmp.controller.Controller;
-import tmp.model.SetupInfo;
+import io.vertx.core.Vertx;
+import utils.SetupInfo;
 import utils.Strings;
+import vertx.controller.Controller;
+import vertx.model.MasterAgent;
+import vertx.view.ConsoleAgent;
 
 import java.util.Scanner;
 
-public class ConsoleView {
+public class VertxMain {
+    public static void main(String[] args){
+        Vertx vertx = Vertx.vertx();
+        Controller controller = new Controller();
 
-    private Controller controller;
-
-    public void setController(Controller controller) {
-        this.controller = controller;
+        vertx.deployVerticle(new MasterAgent());
+        vertx.deployVerticle(new ConsoleAgent(controller, getSetupInfo()));
     }
 
-    public void start(){
+    private static SetupInfo getSetupInfo(){
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Root directory: ");
@@ -39,11 +43,6 @@ public class ConsoleView {
         }while (!Strings.isNumeric(tmp) || Integer.parseInt(tmp) <= 0);
         final Integer lastInterval = Integer.parseInt(tmp);
 
-        final SetupInfo setupInfo = new SetupInfo(dir, nFiles, nIntervals, lastInterval);
-
-        this.controller.getReport(setupInfo).thenAccept(r -> {
-            System.out.println(r.ranking());
-            System.out.println(r.distribution());
-        });
+        return new SetupInfo(dir, nFiles, nIntervals, lastInterval);
     }
 }
