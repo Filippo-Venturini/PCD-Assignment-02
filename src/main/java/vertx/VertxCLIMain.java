@@ -9,7 +9,7 @@ import vertx.view.ConsoleAgent;
 
 import java.util.Scanner;
 
-public class VertxMain {
+public class VertxCLIMain {
     public static void main(String[] args){
         Vertx vertx = Vertx.vertx();
         Model model = new Model();

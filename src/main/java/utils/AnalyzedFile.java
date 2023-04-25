@@ -21,4 +21,10 @@ public class AnalyzedFile implements Comparable<AnalyzedFile>{
     public int compareTo(AnalyzedFile o) {
         return Integer.compare(o.lines, this.lines);
     }
+
+    @Override
+    public String toString() {
+        return  "Lines : " + lines +
+                " <= " + path;
+    }
 }

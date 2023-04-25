@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 public class Result {
     private Set<AnalyzedFile> ranking = new TreeSet<>();
     private final Map<Interval, Integer> distribution = new TreeMap<>();
+    private int nFiles;
 
     public Result(int nIntervals, int lastIntervalLowerBound){
         if(nIntervals == 1){
@@ -18,6 +19,15 @@ public class Result {
             distribution.put(new Interval(intervalSize * (nIntervals - 2), lastIntervalLowerBound), 0);
             distribution.put(new Interval(lastIntervalLowerBound, Integer.MAX_VALUE), 0);
         }
+    }
+
+    public Result(int nIntervals, int lastIntervalLowerBound, int nFiles){
+        this(nIntervals, lastIntervalLowerBound);
+        this.nFiles = nFiles;
+    }
+
+    public synchronized List<AnalyzedFile> getRanking() {
+        return this.getRanking(this.nFiles);
     }
 
     public synchronized List<AnalyzedFile> getRanking(int nResults) {

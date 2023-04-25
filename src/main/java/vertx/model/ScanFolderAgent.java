@@ -5,6 +5,7 @@ import executors.model.Folder;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.EventBus;
 import vertx.controller.Controller;
 
 public class ScanFolderAgent extends AbstractVerticle {
@@ -19,7 +20,11 @@ public class ScanFolderAgent extends AbstractVerticle {
     }
 
     public void start(Promise<Void> startPromise) {
-        //log("started");
+        EventBus eb = vertx.eventBus();
+        eb.consumer("stop-execution", message -> {
+            //
+        });
+
         deployedAgent += this.folder.getSubFolders().size();
         deployedAgent += this.folder.getDocuments().size();
 
@@ -34,8 +39,6 @@ public class ScanFolderAgent extends AbstractVerticle {
 
                 if(deployedAgent == 0){
                     startPromise.complete();
-                    log("COMPLETE: ");
-                    //this.undeploy();
                 }
             });
         }
@@ -46,21 +49,14 @@ public class ScanFolderAgent extends AbstractVerticle {
 
                 if(deployedAgent == 0){
                     startPromise.complete();
-
-                    //this.undeploy();
                 }
             });
-        }
-    }
-
-    private void undeploy(){
-        vertx.undeploy(context.deploymentID()).onComplete(res -> {
-            if (res.succeeded()) {
-                log("Undeployed ok");
-            } else {
-                log("Undeploy failed!");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        });
+        }
     }
 
     private void log(String msg) {

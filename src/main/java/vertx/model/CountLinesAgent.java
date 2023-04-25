@@ -17,17 +17,17 @@ public class CountLinesAgent extends AbstractVerticle {
     }
 
     public void start(Promise<Void> startPromise) {
-        //log("started");
         this.controller.addAnalyzedFile(new AnalyzedFile(document.getPath(), document.countLines()));
-        startPromise.complete();
 
-        /*vertx.undeploy(context.deploymentID()).onComplete(res -> {
-            if (res.succeeded()) {
-                log("Undeployed ok");
-            } else {
-                log("Undeploy failed!");
-            }
-        });*/
+        EventBus eb = vertx.eventBus();
+
+        eb.consumer("stop-execution", message -> {
+            startPromise.complete();
+        });
+
+        eb.publish("mid-report","");
+
+        startPromise.complete();
     }
 
     private void log(String msg) {
