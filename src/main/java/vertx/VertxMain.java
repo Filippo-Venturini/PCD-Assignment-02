@@ -4,7 +4,7 @@ import io.vertx.core.Vertx;
 import utils.SetupInfo;
 import utils.Strings;
 import vertx.controller.Controller;
-import vertx.model.MasterAgent;
+import vertx.model.Model;
 import vertx.view.ConsoleAgent;
 
 import java.util.Scanner;
@@ -12,10 +12,12 @@ import java.util.Scanner;
 public class VertxMain {
     public static void main(String[] args){
         Vertx vertx = Vertx.vertx();
-        Controller controller = new Controller();
+        Model model = new Model();
+        Controller controller = new Controller(model);
 
-        vertx.deployVerticle(new MasterAgent());
-        vertx.deployVerticle(new ConsoleAgent(controller, getSetupInfo()));
+        //SetupInfo setupInfo = getSetupInfo();
+
+        vertx.deployVerticle(new ConsoleAgent(controller, new SetupInfo("D:", 10, 10, 100)));
     }
 
     private static SetupInfo getSetupInfo(){
