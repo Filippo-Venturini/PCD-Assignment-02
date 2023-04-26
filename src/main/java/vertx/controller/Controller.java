@@ -5,7 +5,6 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.future.PromiseImpl;
 import utils.AnalyzedFile;
 import utils.Result;
@@ -16,41 +15,54 @@ import vertx.model.ScanFolderAgent;
 import java.io.File;
 import java.io.IOException;
 
-public class Controller implements SourceAnalyzer{
-    private final Model model;
+public class Controller implements SourceAnalyzer {
 
-    public Controller (Model model){
+    private final Model model;
+    private String rootId;
+
+    public Controller(Model model) {
         this.model = model;
     }
 
     @Override
     public Future<Result> getReport(SetupInfo setupInfo, Vertx vertx) {
+        Promise<Result> result = new PromiseImpl<>();
         try {
-            Promise<Result> result = new PromiseImpl<>();
             this.model.setResult(new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles()));
-            vertx.deployVerticle(new ScanFolderAgent(this, Folder.fromDirectory(new File(setupInfo.dir()))), res -> {
-                result.complete(this.model.getResult());
+            ScanFolderAgent ab = new ScanFolderAgent(this, Folder.fromDirectory(new File(setupInfo.dir())));
+            vertx.deployVerticle(ab).onComplete(res -> {
+                System.out.println("completed");
             });
-            return result.future();
+            ab.onComputationEnded().onComplete(res -> {
+                result.complete(model.getResult());
+            });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        return result.future();
     }
 
     @Override
     public Result analyzeSources(SetupInfo setupInfo, Vertx vertx) {
         try {
             this.model.setResult(new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles()));
-            AbstractVerticle startingVerticle = new ScanFolderAgent(this, Folder.fromDirectory(new File(setupInfo.dir())));
-            vertx.deployVerticle(startingVerticle, res -> {
-                this.model.setRootFolderAgentID(startingVerticle.deploymentID());
-                vertx.eventBus().publish("computation-ended","");
-                vertx.undeploy(startingVerticle.deploymentID());
+            ScanFolderAgent rootAgent = new ScanFolderAgent(this, Folder.fromDirectory(new File(setupInfo.dir())), true);
+            vertx.deployVerticle(rootAgent).onComplete(res -> {
+                rootId = rootAgent.deploymentID();
+                System.out.println("A " + rootId );
+                rootAgent.onComputationEnded().onComplete(res2 -> {
+                    vertx.eventBus().publish("computation-ended", "");
+                    vertx.undeploy(rootId);
+                });
             });
-            return this.model.getResult();
+            return model.getResult();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String getRootId(){
+        return this.rootId;
     }
 
     public void addAnalyzedFile(AnalyzedFile analyzedFile){
@@ -61,7 +73,4 @@ public class Controller implements SourceAnalyzer{
         new Thread(runnable).start();
     }
 
-    public String getRootFolderAgentID(){
-        return this.model.getRootFolderAgentID();
-    }
 }

@@ -3,63 +3,109 @@ package vertx.model;
 import executors.model.Document;
 import executors.model.Folder;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.impl.future.PromiseImpl;
 import vertx.controller.Controller;
 
 public class ScanFolderAgent extends AbstractVerticle {
 
     private final Folder folder;
-    private int deployedAgent;
     private final Controller controller;
+    private int deployedAgents = 0;
+    private Promise<Void> isCompleted = new PromiseImpl<>();
+    private boolean isRoot = false;
 
-    public ScanFolderAgent(Controller controller, Folder folder){
-        this.controller = controller;
-        this.folder = folder;
+    public ScanFolderAgent(Controller controller, Folder folder, boolean isRoot) {
+        this(controller, folder);
+        this.isRoot = isRoot;
     }
 
-    public void start(Promise<Void> startPromise) {
-        EventBus eb = vertx.eventBus();
-        eb.consumer("stop-execution", message -> {
-            //
+    public ScanFolderAgent(Controller controller, Folder folder) {
+        this.folder = folder;
+        this.controller = controller;
+    }
+
+    @Override
+    public void start(Promise<Void> startPromise) throws InterruptedException {
+
+        deployedAgents += folder.getSubFolders().size();
+        deployedAgents += folder.getDocuments().size();
+
+        vertx.eventBus().consumer("stop", message -> {
+            if(isRoot){
+                log(context.deploymentID());
+                vertx.undeploy(context.deploymentID()).onFailure(res -> {
+                    res.printStackTrace();
+                });
+            }else {
+                vertx.undeploy(context.deploymentID());
+            }
+            //startPromise.complete();
+            //isCompleted.complete();
         });
 
-        deployedAgent += this.folder.getSubFolders().size();
-        deployedAgent += this.folder.getDocuments().size();
-
-        if(deployedAgent == 0){
+        if(deployedAgents == 0){
             startPromise.complete();
+            isCompleted.complete();
             return;
         }
 
-        for(Folder subFolder : this.folder.getSubFolders()){
-            vertx.deployVerticle(new ScanFolderAgent(controller, subFolder), res -> {
-                deployedAgent--;
+        if(isRoot){
+            this.log(folder + "scanning folders");
+        }
 
-                if(deployedAgent == 0){
-                    startPromise.complete();
+        for (Folder subFolder: folder.getSubFolders()) {
+            final ScanFolderAgent scanFolderAgent = new ScanFolderAgent(this.controller, subFolder);
+            vertx.deployVerticle(scanFolderAgent);
+            scanFolderAgent.onComputationEnded().onComplete(res -> {
+                deployedAgents--;
+                if(deployedAgents == 0){
+                    if(isRoot){
+                        this.log(folder + " stop");
+                    }
+                    isCompleted.complete();
                 }
             });
         }
 
-        for(Document document : this.folder.getDocuments()){
-            vertx.deployVerticle(new CountLinesAgent(controller, document), res -> {
-                deployedAgent--;
+        if(isRoot){
+            this.log(folder + "scanning documents");
+        }
 
-                if(deployedAgent == 0){
-                    startPromise.complete();
+        for (Document document: folder.getDocuments()) {
+            CountLinesAgent countLinesAgent = new CountLinesAgent(controller, document);
+            this.vertx.deployVerticle(countLinesAgent).onComplete(res -> {
+                deployedAgents--;
+                if(deployedAgents == 0){
+                    if(isRoot){
+                        this.log(folder + " stop");
+                    }
+                    isCompleted.complete();
                 }
             });
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
+        if(isRoot){
+            this.log(folder + " ended start");
+        }
+
+        startPromise.complete();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        if(isRoot) {
+            log("STOPPED");
+        }
+    }
+
+    public Future<Void> onComputationEnded(){
+        return isCompleted.future();
     }
 
     private void log(String msg) {
-        System.out.println("[SCAN FOLDER AGENT][" + Thread.currentThread() + "] " + msg);
+        System.out.println("[SCAN FOLDER AGENT]["+Thread.currentThread()+"] " + msg);
     }
+
 }

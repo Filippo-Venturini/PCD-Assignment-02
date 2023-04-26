@@ -17,11 +17,15 @@ public class GUIAgent extends AbstractVerticle {
     private final JList<String> distributionList = new JList<>();
     private final JButton btnStart = new JButton("Start");
     private final JButton btnStop = new JButton("Stop");
-
     private Result result;
+    private String rootAgentID;
 
     public void start(){
         EventBus eb = vertx.eventBus();
+
+        eb.consumer("root-agent-id", message -> {
+            this.rootAgentID = message.body().toString();
+        });
 
         eb.consumer("mid-report", message -> {
             DefaultListModel<AnalyzedFile> rankingModel = new DefaultListModel<>();
@@ -112,12 +116,21 @@ public class GUIAgent extends AbstractVerticle {
         });
 
         btnStop.addActionListener(e -> {
-            this.btnStart.setEnabled(true);
-            this.btnStop.setEnabled(true);
-
-            this.controller.processEvent(() -> {
-                //vertx.undeploy(this.controller.getRootFolderAgentID());
+            /*
+            System.out.println("B" + this.controller.getRootId());
+            vertx.undeploy(this.controller.getRootId()).onComplete(res -> {
+                if (res.succeeded()) {
+                    System.out.println("Undeployed ok");
+                } else {
+                    System.out.println("C" + this.controller.getRootId());
+                    System.out.println(res.cause().getMessage());
+                    System.out.println("Undeploy failed!");
+                }
             });
+             */
+            vertx.eventBus().publish("stop", "");
+            btnStart.setEnabled(true);
+            btnStop.setEnabled(false);
         });
 
         final JPanel resultsPanel = new JPanel();
