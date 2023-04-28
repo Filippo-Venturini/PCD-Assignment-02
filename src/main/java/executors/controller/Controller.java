@@ -22,7 +22,17 @@ public class Controller implements SourceAnalyzer{
         return this.model.getDirectoryScanner().getFinalReport();
     }
 
+    @Override
+    public Result analyzeSources(SetupInfo setupInfo) {
+        return this.model.getDirectoryScanner().getMidReport();
+    }
+
     public void startScan(SetupInfo setupInfo) throws IOException {
-        this.model.getDirectoryScanner().scan(Folder.fromDirectory(new File(setupInfo.dir())));
+        this.model.getDirectoryScanner().resetMidReport(setupInfo);
+        this.model.getDirectoryScanner().scan(Folder.fromDirectory(new File(setupInfo.dir())), setupInfo);
+    }
+
+    public void processEvent(Runnable runnable){
+        new Thread(runnable).start();
     }
 }

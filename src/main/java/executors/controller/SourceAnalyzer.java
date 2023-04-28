@@ -8,5 +8,5 @@ import java.util.concurrent.CompletableFuture;
 public interface SourceAnalyzer {
     CompletableFuture<Result> getReport(SetupInfo setupInfo);
 
-    //analizeSources(String dir);
+    Result analyzeSources(SetupInfo setupInfo);
 }

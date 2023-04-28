@@ -1,11 +1,14 @@
 package utils;
 
+import executors.model.ResultObserver;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Result {
     private Set<AnalyzedFile> ranking = new TreeSet<>();
     private final Map<Interval, Integer> distribution = new TreeMap<>();
+    private Set<ResultObserver> observers = new HashSet<>();
     private int nFiles;
 
     public Result(int nIntervals, int lastIntervalLowerBound){
@@ -49,11 +52,17 @@ public class Result {
                 entry.setValue(entry.getValue() + 1);
             }
         }
+
+        this.observers.forEach(ResultObserver::resultUpdated);
     }
 
     public synchronized void merge(Result otherResult){
         for(AnalyzedFile analyzedFile : otherResult.getAllAnalizedFiles()){
             this.add(analyzedFile);
         }
+    }
+
+    public void addObserver(ResultObserver observer){
+        this.observers.add(observer);
     }
 }

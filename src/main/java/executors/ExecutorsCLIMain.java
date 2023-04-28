@@ -4,7 +4,7 @@ import executors.controller.Controller;
 import executors.view.ConsoleView;
 import executors.model.Model;
 
-public class ExecutorsMain {
+public class ExecutorsCLIMain {
     public static void main(String[] args){
         Model model = new Model();
         Controller controller = new Controller(model);
