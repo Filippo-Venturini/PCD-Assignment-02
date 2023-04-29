@@ -86,16 +86,11 @@ public class GUIView implements ResultObserver {
                         Integer.parseInt(txtLastInterval.getText()));
                 this.result = this.controller.analyzeSources(setupInfo);
                 this.result.addObserver(this);
-                try {
-                    this.controller.startScan(setupInfo);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
             });
         });
 
         btnStop.addActionListener(e -> {
-            //TODO STOP
+            this.controller.stopExecution();
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);
         });

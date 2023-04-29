@@ -1,7 +1,5 @@
 package executors.model;
-import utils.AnalyzedFile;
-import utils.Result;
-import utils.SetupInfo;
+import utils.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +34,7 @@ public class ScanFolderTask extends RecursiveTask<Result> {
             task.fork();
         }
 
-        Result result = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound());
+        Result result = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
 
         for(RecursiveTask<AnalyzedFile> countLinesTask : countLinesTasks){
             result.add(countLinesTask.join());

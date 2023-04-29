@@ -1,14 +1,16 @@
 package executors.view;
 
 import executors.controller.Controller;
-import utils.SetupInfo;
-import utils.Strings;
+import utils.*;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 
 public class ConsoleView {
     private Controller controller;
+    private Result finalReport;
 
     public void setController(Controller controller){
         this.controller = controller;
@@ -41,14 +43,21 @@ public class ConsoleView {
 
         final SetupInfo setupInfo = new SetupInfo(dir, nFiles, nIntervals, lastInterval);
 
-        this.controller.getReport(setupInfo).thenAccept(r -> {
-            System.out.println(r.getRanking(10));
-            System.out.println(r.getDistribution());
-        });
-
         try {
-            this.controller.startScan(setupInfo);
-        } catch (IOException e) {
+            finalReport = this.controller.getReport(setupInfo).get();
+
+            System.out.println("Files ranking:");
+            for(AnalyzedFile result : finalReport.getRanking()){
+                System.out.println(result.path() + " has: " + result.lines() + " lines.");
+            }
+            System.out.println("\nFiles distribution:");
+            for(Map.Entry<Interval, Integer> entry : finalReport.getDistribution().entrySet()){
+                System.out.println(entry.getKey() + " : " + entry.getValue());
+            }
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
     }

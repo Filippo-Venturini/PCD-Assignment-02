@@ -1,7 +1,6 @@
 package vertx.controller;
 
-import executors.model.Folder;
-import io.vertx.core.AbstractVerticle;
+import utils.Folder;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;

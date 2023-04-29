@@ -1,33 +1,45 @@
 package executors.model;
 
-import utils.Report;
+import utils.Folder;
 import utils.Result;
 import utils.SetupInfo;
 
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 
 public class DirectoryScanner {
 
-    private final ForkJoinPool forkJoinPool = new ForkJoinPool();
-    private final CompletableFuture<Result> finalReport = new CompletableFuture<>();
+    private ForkJoinPool forkJoinPool = new ForkJoinPool();
     private Result midReport;
 
-    public void scan(Folder folder, SetupInfo setupInfo) {
-        this.finalReport.complete(forkJoinPool.invoke(new ScanFolderTask(folder, setupInfo, midReport)));
+    public ForkJoinTask<Result> getFinalReport(SetupInfo setupInfo){
+        this.resetMidReport(setupInfo);
+        try {
+            return forkJoinPool.submit(new ScanFolderTask(Folder.fromDirectory(new File(setupInfo.dir())), setupInfo, midReport));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public CompletableFuture<Result> getFinalReport(){
-        return this.finalReport;
-    }
-
-    public Result getMidReport(){
+    public Result getMidReport(SetupInfo setupInfo){
+        this.resetMidReport(setupInfo);
+        try {
+            this.forkJoinPool.execute(new ScanFolderTask(Folder.fromDirectory(new File(setupInfo.dir())), setupInfo, midReport));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return this.midReport;
     }
 
-    public void resetMidReport(SetupInfo setupInfo){
-        this.midReport = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound());
+    private void resetMidReport(SetupInfo setupInfo){
+        this.midReport = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
+    }
+
+    public void stopExecution(){
+        this.forkJoinPool.shutdownNow();
+        this.forkJoinPool = new ForkJoinPool();
     }
 
 }

@@ -1,14 +1,10 @@
 package executors.controller;
 
-import executors.model.Folder;
 import executors.model.Model;
 import utils.SetupInfo;
-import utils.Report;
 import utils.Result;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinTask;
 
 public class Controller implements SourceAnalyzer{
     private final Model model;
@@ -18,18 +14,17 @@ public class Controller implements SourceAnalyzer{
     }
 
     @Override
-    public CompletableFuture<Result> getReport(SetupInfo setupInfo) {
-        return this.model.getDirectoryScanner().getFinalReport();
+    public ForkJoinTask<Result> getReport(SetupInfo setupInfo) {
+        return this.model.getDirectoryScanner().getFinalReport(setupInfo);
     }
 
     @Override
     public Result analyzeSources(SetupInfo setupInfo) {
-        return this.model.getDirectoryScanner().getMidReport();
+        return this.model.getDirectoryScanner().getMidReport(setupInfo);
     }
 
-    public void startScan(SetupInfo setupInfo) throws IOException {
-        this.model.getDirectoryScanner().resetMidReport(setupInfo);
-        this.model.getDirectoryScanner().scan(Folder.fromDirectory(new File(setupInfo.dir())), setupInfo);
+    public void stopExecution(){
+        this.model.getDirectoryScanner().stopExecution();
     }
 
     public void processEvent(Runnable runnable){
