@@ -18,6 +18,10 @@ dependencies {
     implementation("io.vertx:vertx-web-client:4.4.1")
 }
 
+compileJava {
+    options.compilerArgs += ['--enable-preview']
+}
+
 test {
     useJUnitPlatform()
 }
