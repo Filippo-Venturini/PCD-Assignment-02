@@ -1,11 +1,12 @@
-package executors.view;
+package virtual_threads.view;
 
+import virtual_threads.controller.Controller;
 import utils.ResultObserver;
 import utils.*;
-import executors.controller.Controller;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class GUIView implements ResultObserver {
@@ -83,7 +84,15 @@ public class GUIView implements ResultObserver {
                         Integer.parseInt(txtNFiles.getText()),
                         Integer.parseInt(txtIntervals.getText()),
                         Integer.parseInt(txtLastInterval.getText()));
-                this.result = this.controller.analyzeSources(setupInfo);
+
+                CompletableFuture<Void> executionEnded = new CompletableFuture<>();
+                this.result = this.controller.analyzeSources(setupInfo, executionEnded);
+
+                executionEnded.thenRun(() -> {
+                    btnStart.setEnabled(true);
+                    btnStop.setEnabled(false);
+                });
+
                 this.result.addObserver(this);
             });
         });

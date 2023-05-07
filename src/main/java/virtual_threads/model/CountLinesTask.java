@@ -4,13 +4,19 @@ import utils.AnalyzedFile;
 import utils.Document;
 import utils.Result;
 
-public class CountLinesTask implements Runnable{
-    private Document document;
-    private Result result;
+import java.util.concurrent.CompletableFuture;
 
-    public CountLinesTask(Document document, Result result){
+public class CountLinesTask implements Runnable{
+    private final Document document;
+    private final Result result;
+
+    public CountLinesTask(Document document, Result result, CompletableFuture<Void> stopExecution){
         this.document = document;
         this.result = result;
+
+        stopExecution.thenRun(() -> {
+            Thread.currentThread().interrupt();
+        });
     }
 
     @Override

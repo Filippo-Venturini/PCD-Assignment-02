@@ -27,15 +27,42 @@ public class Controller implements SourceAnalyzer{
         Thread.ofVirtual().start(() -> {
             Thread rootThread = null;
             try {
-                rootThread = Thread.ofVirtual().unstarted(new ScanFolderTask(Folder.fromDirectory(new File(setupInfo.dir())), this.model.getResult()));
+                rootThread = Thread.ofVirtual().unstarted(new ScanFolderTask(Folder.fromDirectory(new File(setupInfo.dir())), this.model.getResult(), this.model.getStopExecution()));
                 rootThread.start();
                 rootThread.join();
                 result.complete(model.getResult());
             } catch (InterruptedException | IOException e) {
-                throw new RuntimeException(e);
             }
         });
 
         return result;
     }
+
+    @Override
+    public Result analyzeSources(SetupInfo setupInfo, CompletableFuture<Void> executionEnded) {
+
+        this.model.init(setupInfo);
+
+        Thread.ofVirtual().start(() -> {
+            Thread rootThread = null;
+            try {
+                rootThread = Thread.ofVirtual().unstarted(new ScanFolderTask(Folder.fromDirectory(new File(setupInfo.dir())), this.model.getResult(), this.model.getStopExecution()));
+                rootThread.start();
+                rootThread.join();
+                executionEnded.complete(null);
+            } catch (InterruptedException | IOException e) {
+            }
+        });
+
+        return this.model.getResult();
+    }
+
+    public void stopExecution(){
+        this.model.getStopExecution().complete(null);
+    }
+
+    public void processEvent(Runnable runnable){
+        Thread.ofVirtual().start(runnable);
+    }
+
 }

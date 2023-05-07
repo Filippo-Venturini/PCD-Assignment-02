@@ -1,4 +1,4 @@
-package executors.model;
+package utils;
 
 public interface ResultObserver {
     void resultUpdated();
