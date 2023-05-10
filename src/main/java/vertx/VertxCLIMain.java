@@ -15,9 +15,9 @@ public class VertxCLIMain {
         Model model = new Model();
         Controller controller = new Controller(model);
 
-        //SetupInfo setupInfo = getSetupInfo();
+        SetupInfo setupInfo = getSetupInfo();
 
-        vertx.deployVerticle(new ConsoleAgent(controller, new SetupInfo("D:", 10, 10, 100)));
+        vertx.deployVerticle(new ConsoleAgent(controller, setupInfo));
     }
 
     private static SetupInfo getSetupInfo(){

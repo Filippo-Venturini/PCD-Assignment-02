@@ -41,8 +41,6 @@ public class ScanFolderAgent extends AbstractVerticle {
             }else {
                 vertx.undeploy(context.deploymentID());
             }
-            //startPromise.complete();
-            //isCompleted.complete();
         });
 
         if(deployedAgents == 0){
@@ -95,9 +93,6 @@ public class ScanFolderAgent extends AbstractVerticle {
     @Override
     public void stop() throws Exception {
         super.stop();
-        if(isRoot) {
-            log("STOPPED");
-        }
     }
 
     public Future<Void> onComputationEnded(){

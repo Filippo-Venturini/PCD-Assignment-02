@@ -116,18 +116,6 @@ public class GUIAgent extends AbstractVerticle {
         });
 
         btnStop.addActionListener(e -> {
-            /*
-            System.out.println("B" + this.controller.getRootId());
-            vertx.undeploy(this.controller.getRootId()).onComplete(res -> {
-                if (res.succeeded()) {
-                    System.out.println("Undeployed ok");
-                } else {
-                    System.out.println("C" + this.controller.getRootId());
-                    System.out.println(res.cause().getMessage());
-                    System.out.println("Undeploy failed!");
-                }
-            });
-             */
             vertx.eventBus().publish("stop", "");
             btnStart.setEnabled(true);
             btnStop.setEnabled(false);

@@ -2,21 +2,38 @@ package rx.controller;
 
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import rx.model.Model;
 import utils.AnalyzedFile;
 import utils.Folder;
 import utils.Result;
 import utils.SetupInfo;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Controller {
+public class Controller implements SourceAnalyzer{
+    private final Model model;
 
+    public Controller(Model model){
+        this.model = model;
+    }
 
+    @Override
     public Single<Result> getReport(SetupInfo setupInfo){
+        this.model.resetStopExecution();
         Result emptyResult = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
 
         return this.analyzeFolder(setupInfo.dir())
                 .reduce(emptyResult, (result, af) -> result.accumulate(af));
+    }
+
+    @Override
+    public Flowable<Result> analyzeSources(SetupInfo setupInfo){
+        this.model.resetStopExecution();
+        Result result = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
+
+        return this.analyzeFolder(setupInfo.dir())
+                .map(af -> result.accumulate(af));
     }
 
     private Flowable<AnalyzedFile> analyzeFolder(String folder){
@@ -30,7 +47,12 @@ public class Controller {
     private Flowable<Folder> getSubFolders(Folder folder){
         return Flowable
                 .fromIterable(folder.getSubFolders())
+                .skipWhile(af -> this.model.getStopExecution().get())
                 .flatMap(f -> this.getSubFolders(f))
                 .concatWith(Flowable.just(folder));
+    }
+
+    public void stopExecution(){
+        this.model.getStopExecution().set(true);
     }
 }

@@ -19,7 +19,6 @@ public class CountLinesAgent extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise){
         vertx.eventBus().consumer("stop", message -> {
-            //log(context.deploymentID());
             vertx.undeploy(context.deploymentID());
         });
 
