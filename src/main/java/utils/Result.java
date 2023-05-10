@@ -56,6 +56,11 @@ public class Result {
         }
     }
 
+    public Result accumulate(AnalyzedFile elem) {
+        this.add(elem);
+        return this;
+    }
+
     public void addObserver(ResultObserver observer){
         this.observers.add(observer);
     }

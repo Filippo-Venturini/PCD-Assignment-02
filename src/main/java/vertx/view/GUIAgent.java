@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public class GUIAgent extends AbstractVerticle {
 
-    private Controller controller;
+    private final Controller controller;
     private final JFrame frame = new JFrame();
     private final JList<AnalyzedFile> rankingList = new JList<>();
     private final JList<String> distributionList = new JList<>();
