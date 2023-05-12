@@ -2,6 +2,8 @@ package rx.controller;
 
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.parallel.ParallelFlowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import rx.model.Model;
 import utils.AnalyzedFile;
 import utils.Folder;
@@ -24,6 +26,7 @@ public class Controller implements SourceAnalyzer{
         Result emptyResult = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
 
         return this.analyzeFolder(setupInfo.dir())
+                .sequential() //Merge all the parallel flowable in a single one
                 .reduce(emptyResult, (result, af) -> result.accumulate(af));
     }
 
@@ -33,13 +36,17 @@ public class Controller implements SourceAnalyzer{
         Result result = new Result(setupInfo.nIntervals(), setupInfo.lastIntervalLowerBound(), setupInfo.nFiles());
 
         return this.analyzeFolder(setupInfo.dir())
+                .sequential()//Merge all the parallel flowable in a single one
                 .map(af -> result.accumulate(af));
     }
 
-    private Flowable<AnalyzedFile> analyzeFolder(String folder){
+    private ParallelFlowable<AnalyzedFile> analyzeFolder(String folder){
         return Flowable.just(folder)
                 .map(p -> Folder.fromDirectory(new File(p)))
                 .flatMap(f -> this.getSubFolders(f))
+                .subscribeOn(Schedulers.io())  //Execute the upstream operators on another Thread
+                .parallel()
+                .runOn(Schedulers.computation()) //Execute each parallel computation on a different Thread
                 .flatMap(f -> Flowable.fromIterable(f.getDocuments()))
                 .map(d -> new AnalyzedFile(d.getPath(), d.countLines()));
     }

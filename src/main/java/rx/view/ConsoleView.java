@@ -8,6 +8,7 @@ import utils.*;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConsoleView {
 
@@ -44,6 +45,8 @@ public class ConsoleView {
 
         final SetupInfo setupInfo = new SetupInfo(dir, nFiles, nIntervals, lastInterval);
 
+        AtomicBoolean executionEnded = new AtomicBoolean();
+
         this.controller.getReport(setupInfo).subscribe((results) -> {
             System.out.println("Files ranking:");
             for(AnalyzedFile result : results.getRanking()){
@@ -53,6 +56,15 @@ public class ConsoleView {
             for(Map.Entry<Interval, Integer> entry : results.getDistribution().entrySet()){
                 System.out.println(entry.getKey() + " : " + entry.getValue());
             }
+            executionEnded.set(true);
         });
+
+        while (!executionEnded.get()){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
